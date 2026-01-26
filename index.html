@@ -1,0 +1,744 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>情緒 × 風險監測（MVP）</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#111a2e;
+      --card2:#0f1730;
+      --text:#e8eefc;
+      --muted:#a9b7d6;
+      --line:#243356;
+      --accent:#6aa6ff;
+      --accent2:#8dd3ff;
+      --warn:#ffcc66;
+      --ok:#7ee787;
+      --bad:#ff7b72;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Noto Sans TC", Arial;
+      color:var(--text);
+      background: radial-gradient(1200px 600px at 20% 10%, #122247 0%, var(--bg) 55%),
+                  radial-gradient(900px 500px at 80% 20%, #0f2a3d 0%, var(--bg) 60%);
+      min-height:100vh;
+    }
+    .wrap{max-width:1100px;margin:0 auto;padding:22px}
+    header{
+      display:flex; gap:16px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;
+      padding:14px 14px 8px 14px;
+    }
+    h1{font-size:20px; margin:0 0 6px 0; letter-spacing:.3px}
+    .sub{color:var(--muted); font-size:13px; line-height:1.5; max-width:720px}
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      border:1px solid var(--line); background:rgba(255,255,255,.03);
+      padding:8px 10px; border-radius:999px; font-size:12px; color:var(--muted)
+    }
+    .grid{
+      display:grid; grid-template-columns: 1.2fr .8fr; gap:16px;
+    }
+    @media (max-width: 900px){
+      .grid{grid-template-columns:1fr}
+    }
+    .card{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border-radius:16px;
+      padding:14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    .card h2{font-size:15px; margin:0 0 10px 0}
+    .tabs{display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap}
+    .tab{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.02);
+      color:var(--muted);
+      padding:8px 10px;
+      border-radius:10px;
+      cursor:pointer;
+      font-size:13px;
+    }
+    .tab.active{
+      border-color:rgba(106,166,255,.55);
+      color:var(--text);
+      background:rgba(106,166,255,.10);
+    }
+    label{display:block; font-size:13px; color:var(--muted); margin:10px 0 6px}
+    select, input[type="range"]{ width:100%; }
+    select{
+      background:rgba(255,255,255,.02);
+      border:1px solid var(--line);
+      color:var(--text);
+      padding:10px 10px;
+      border-radius:12px;
+      outline:none;
+    }
+    .rangeRow{display:flex; align-items:center; gap:12px}
+    .rangeVal{
+      min-width:46px; text-align:center; font-weight:600;
+      border:1px solid var(--line); padding:6px 8px; border-radius:10px;
+      background:rgba(255,255,255,.02);
+    }
+    .hint{
+      font-size:12px; color:var(--muted);
+      margin-top:8px; line-height:1.45;
+    }
+    .emobox{
+      display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;
+    }
+    .chip{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.02);
+      padding:8px 10px;
+      border-radius:999px;
+      cursor:pointer;
+      font-size:13px;
+      color:var(--text);
+      user-select:none;
+    }
+    .chip.active{
+      border-color:rgba(141,211,255,.65);
+      background:rgba(141,211,255,.10);
+    }
+    .qGroup{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.02);
+      border-radius:14px;
+      padding:10px;
+      margin-top:10px;
+    }
+    .qTitle{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px; margin-bottom:8px;
+    }
+    .qTitle strong{font-size:13px}
+    .mini{font-size:12px; color:var(--muted)}
+    .qItem{
+      display:flex; align-items:flex-start; gap:10px;
+      padding:8px 6px; border-radius:10px;
+    }
+    .qItem:hover{background:rgba(255,255,255,.03)}
+    input[type="checkbox"]{transform:translateY(2px)}
+    .actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
+    button{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.02);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      font-size:13px;
+    }
+    button.primary{
+      border-color: rgba(106,166,255,.55);
+      background: rgba(106,166,255,.12);
+    }
+    button:hover{filter:brightness(1.08)}
+    .outBlock{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(17,26,46,.7), rgba(17,26,46,.35));
+      border-radius:16px;
+      padding:12px;
+      margin-top:10px;
+    }
+    .outBlock h3{
+      margin:0 0 8px 0;
+      font-size:13px;
+      color:var(--muted);
+      letter-spacing:.3px;
+    }
+    .outBlock .content{
+      font-size:14px;
+      line-height:1.6;
+      white-space:pre-line;
+    }
+    .badgeRow{display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 0}
+    .badge{
+      font-size:12px; padding:6px 8px;
+      border-radius:999px; border:1px solid var(--line);
+      background:rgba(255,255,255,.02); color:var(--muted);
+    }
+    .badge.good{border-color:rgba(126,231,135,.35); color:rgba(126,231,135,.9); background:rgba(126,231,135,.07)}
+    .badge.warn{border-color:rgba(255,204,102,.35); color:rgba(255,204,102,.95); background:rgba(255,204,102,.07)}
+    .badge.bad{border-color:rgba(255,123,114,.35); color:rgba(255,123,114,.95); background:rgba(255,123,114,.07)}
+    .divider{height:1px; background:var(--line); margin:12px 0}
+    .foot{
+      margin-top:14px;
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.5;
+      border:1px dashed rgba(255,255,255,.15);
+      padding:10px;
+      border-radius:12px;
+      background:rgba(0,0,0,.08);
+    }
+    a{color:var(--accent2); text-decoration:none}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>情緒 × 風險監測（MVP）</h1>
+        <div class="sub">
+          以「普拉奇克八大基本情緒 × 常見問題」作為高頻輸入，並自動帶出「血壓/血糖波動型態、 自律神經風險意涵、 報告用語」。
+          <br/>新增：<b>風險管控建議（依強度 0–10 自動排序優先順序）</b>。
+          <br/>（本工具為風險監測與自我覺察用途，非醫療診斷。）
+        </div>
+      </div>
+      <div class="pill">輸入方式：選情緒 / 選問題 → 自動生成報告</div>
+    </header>
+
+    <div class="grid">
+      <!-- INPUT -->
+      <section class="card">
+        <h2>輸入</h2>
+
+        <div class="tabs">
+          <div class="tab active" id="tabEmotion">選情緒</div>
+          <div class="tab" id="tabProblem">選問題</div>
+        </div>
+
+        <!-- Emotion Mode -->
+        <div id="modeEmotion">
+          <label>選擇你目前最接近的情緒狀態</label>
+          <select id="emotionSelect"></select>
+
+          <label>強度（0–10）</label>
+          <div class="rangeRow">
+            <input id="intensity" type="range" min="0" max="10" step="1" value="5" />
+            <div class="rangeVal" id="intensityVal">5</div>
+          </div>
+          <div class="hint">強度只用於決定「風險管控建議」的優先順序與提示；不推算疾病、不推算精準數值。</div>
+
+          <div class="actions">
+            <button class="primary" id="applyEmotion">生成報告</button>
+            <button id="resetAll1">清除</button>
+          </div>
+        </div>
+
+        <!-- Problem Mode -->
+        <div id="modeProblem" style="display:none;">
+          <div class="hint">先選一個情緒分類，再點選你符合的問題（可複選）。系統會用「被點選最多的情緒」作為主情緒。</div>
+
+          <div class="emobox" id="emotionChips"></div>
+          <div id="questionArea"></div>
+
+          <label>強度（0–10）</label>
+          <div class="rangeRow">
+            <input id="intensity2" type="range" min="0" max="10" step="1" value="5" />
+            <div class="rangeVal" id="intensityVal2">5</div>
+          </div>
+
+          <div class="actions">
+            <button class="primary" id="applyProblem">生成報告</button>
+            <button id="resetAll2">清除</button>
+          </div>
+        </div>
+
+        <div class="foot">
+          <b>提示：</b>你可以先用「選情緒」快速出報告；若想更貼近描述，改用「選問題」。
+          <br/>若有家用量測設備，建議把這份報告當作「趨勢提醒」而不是結論。
+        </div>
+      </section>
+
+      <!-- OUTPUT -->
+      <section class="card">
+        <h2>輸出報告</h2>
+
+        <div class="badgeRow" id="badges"></div>
+
+        <div class="outBlock">
+          <h3>生理波動型態（血壓 / 血糖）</h3>
+          <div class="content" id="physioOut">請先在左側選擇情緒或問題，並生成報告。</div>
+        </div>
+
+        <div class="outBlock">
+          <h3>自律神經風險意涵</h3>
+          <div class="content" id="ansOut">—</div>
+        </div>
+
+        <div class="outBlock">
+          <h3>報告用語</h3>
+          <div class="content" id="reportOut">—</div>
+        </div>
+
+        <div class="outBlock">
+          <h3>風險管控建議（依強度自動排序）</h3>
+          <div class="content" id="recOut">—</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="actions">
+          <button id="copyReport">複製報告</button>
+          <button id="printPage">列印 / 存成 PDF</button>
+        </div>
+
+        <div class="foot">
+          <b>重要聲明：</b>本工具輸出為「走向、區間、風險型態」之提示，<b>不構成醫療診斷或治療建議</b>。
+          若你有胸痛、呼吸困難、嚴重頭暈、意識改變等急性症狀，請立即就醫或聯絡急救資源。
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    // ====== Data (MVP v1.0) ======
+    const MODEL = {
+      "喜悅（Joy）": {
+        essence: "正向高動員，容易過度前傾",
+        questions: [
+          "停不下來、很難真正休息",
+          "明明很累，卻一直答應更多事情",
+          "睡眠時間被壓縮但仍撐著",
+          "專注成果，忽略身體警訊",
+          "情緒高峰後出現明顯疲憊或空落"
+        ],
+        physio: [
+          "血壓：偏高或接近上緣，白天動員感明顯",
+          "血糖：正常～輕度波動，壓力或過度投入時短暫升高"
+        ],
+        ans: [
+          "動員效率高，但恢復窗口被壓縮",
+          "長期可能出現「高峰—反彈」循環"
+        ],
+        report: "正向動能充足，但需要留意恢復與回收節奏是否被忽略。"
+      },
+      "信任（Trust）": {
+        essence: "低衝突承擔，界線模糊",
+        questions: [
+          "不太會拒絕別人的請求",
+          "長期把他人需求放在前面",
+          "角色責任感過重",
+          "因內疚而持續付出",
+          "表面穩定，內在開始耗損"
+        ],
+        physio: [
+          "血壓：表面正常或偏低，但穩定度下降",
+          "血糖：正常或偏低，長期可能出現調節疲勞型波動"
+        ],
+        ans: [
+          "長期承擔但未即時回補",
+          "一旦失衡，容易出現突然轉折或反彈"
+        ],
+        report: "外在狀態看似平穩，但內在調節資源正在被消耗。"
+      },
+      "恐懼（Fear）": {
+        essence: "持續警戒、不確定感高",
+        questions: [
+          "對未來或變化持續擔心",
+          "決策反覆、難以下定",
+          "習慣預想最壞情境",
+          "身體長期緊繃、難以放鬆",
+          "對突發狀況反應特別強"
+        ],
+        physio: [
+          "血壓：偏高或波動幅度大，緊張時上升",
+          "血糖：波動型，壓力事件後容易升高"
+        ],
+        ans: [
+          "長期處於警戒狀態",
+          "恢復能力下降，易累積負荷"
+        ],
+        report: "神經與內分泌調節長期承受壓力，需留意持續警戒帶來的累積效應。"
+      },
+      "憤怒（Anger）": {
+        essence: "張力累積與釋放節奏失衡",
+        questions: [
+          "常感到不公平卻說不出口",
+          "對小事不耐煩、易煩躁",
+          "情緒壓抑後反覆內耗",
+          "對特定人或情境特別容易生氣",
+          "忍很久後突然爆發"
+        ],
+        physio: [
+          "血壓：偏高或高波動型",
+          "血糖：壓力事件後短期升高，穩定度下降"
+        ],
+        ans: [
+          "動員與回收節奏不穩",
+          "短期波動對身心負荷較大"
+        ],
+        report: "情緒張力累積後釋放不均，容易造成短期調節負擔。"
+      },
+      "悲傷（Sadness）": {
+        essence: "低動能、恢復不足",
+        questions: [
+          "情緒低落但仍持續運作",
+          "動力不足、提不起勁",
+          "空虛或無力感",
+          "疲勞恢復速度慢",
+          "感覺只是撐著過日子"
+        ],
+        physio: [
+          "血壓：正常偏低或偏低",
+          "血糖：偏低或不穩，能量調節效率下降"
+        ],
+        ans: [
+          "修復與回補效率降低",
+          "容易進入慢性耗竭狀態"
+        ],
+        report: "整體動能與恢復速度偏低，需留意長期能量不足的影響。"
+      },
+      "厭惡（Disgust）": {
+        essence: "排斥、防衛與價值衝突",
+        questions: [
+          "對某些人或環境感到反感",
+          "常出現身體不舒服感",
+          "腸胃、皮膚等敏感反應",
+          "想遠離某些角色或關係",
+          "覺得被迫待在不適合的位置"
+        ],
+        physio: [
+          "血壓：穩定度下降，易受情境影響",
+          "血糖：波動型，壓力或排斥感時升高"
+        ],
+        ans: [
+          "對特定刺激反應敏感",
+          "調節系統需頻繁應對防衛訊號"
+        ],
+        report: "對特定情境的反應負荷偏高，需留意累積性刺激。"
+      },
+      "期待（Anticipation）": {
+        essence: "持續前傾、過度預期",
+        questions: [
+          "腦袋停不下來",
+          "很難真正活在當下",
+          "對結果過度在意",
+          "行程排得很滿",
+          "入睡困難、睡前思緒多"
+        ],
+        physio: [
+          "血壓：偏高或夜間下降不足",
+          "血糖：正常～輕度升高，夜間調節變差"
+        ],
+        ans: [
+          "長時間前傾狀態",
+          "夜間恢復與節律易受影響"
+        ],
+        report: "動員狀態持續，需留意是否影響夜間回收與節律平衡。"
+      },
+      "驚訝（Surprise）": {
+        essence: "突發刺激下的調節延遲",
+        questions: [
+          "容易被突發事件打亂",
+          "對變化反應過大或過慢",
+          "注意力容易破碎",
+          "面對突發狀況會慌或空白",
+          "情緒退得慢"
+        ],
+        physio: [
+          "血壓：短期快速上升，回落速度慢",
+          "血糖：短期升高，回穩延遲"
+        ],
+        ans: [
+          "切換速度偏慢",
+          "刺激容易累積成負荷"
+        ],
+        report: "對突發刺激的調節需要較長時間，需留意連續事件帶來的累積效應。"
+      }
+    };
+
+    const EMOTIONS = Object.keys(MODEL);
+
+    // ====== Helpers ======
+    function riskLevel(intensity){
+      if (intensity <= 3) return {label:"低強度", cls:"good"};
+      if (intensity <= 7) return {label:"中強度", cls:"warn"};
+      return {label:"高強度", cls:"bad"};
+    }
+
+    // 建議模組（固定四類；優先順序只由強度決定）
+    function buildRecommendations(intensity){
+      // 優先順序規則（可自行改）
+      // 低：節奏 > 睡眠 > 界線 > 刺激源
+      // 中：睡眠 > 節奏 > 刺激源 > 界線
+      // 高：睡眠 > 刺激源 > 節奏 > 界線
+      const lv = riskLevel(intensity);
+      let order;
+      if (lv.cls === "good") order = ["節奏", "睡眠", "界線", "刺激源"];
+      else if (lv.cls === "warn") order = ["睡眠", "節奏", "刺激源", "界線"];
+      else order = ["睡眠", "刺激源", "節奏", "界線"];
+
+      const LIB = {
+        "睡眠": [
+          "把「上床時間」固定為第一優先（先固定時間，再談睡多久）",
+          "睡前 60 分鐘：把高刺激（工作/社群/爭論/資訊）降到最低",
+          "若夜醒或難入睡：先做「減刺激」與「呼吸放慢」，不要硬撐看手機"
+        ],
+        "刺激源": [
+          "盤點 24 小時內的刺激源：咖啡因、爆量資訊、衝突對話、超時工作",
+          "今天先砍掉一個最容易造成波動的刺激（只砍一個就好）",
+          "若必須面對刺激：用「短時段＋休息間隔」切割暴露"
+        ],
+        "節奏": [
+          "把一天切成 3 段：輸出段／回收段／空白段（至少留一段空白）",
+          "用 45–90 分鐘為單位工作，結束必做 3–5 分鐘回收（走動/喝水/呼吸）",
+          "連續疲勞時：先降低速度，不要用意志力加速"
+        ],
+        "界線": [
+          "今天先練一次「不解釋的拒絕」：先說不，再補可行替代方案",
+          "把「對人負責」改成「對節奏負責」：先保住恢復窗口",
+          "若角色壓力高：先定義你本週的『可承擔上限』"
+        ]
+      };
+
+      // 組裝文字
+      const lines = [];
+      lines.push(`建議優先順序（依強度 ${intensity}/10 自動排序）：`);
+      order.forEach((k, i)=>{
+        lines.push(`${i+1}. ${k}`);
+      });
+      lines.push("");
+      order.forEach((k, i)=>{
+        lines.push(`【${i+1}. ${k}】`);
+        LIB[k].forEach(b=> lines.push(`• ${b}`));
+        lines.push("");
+      });
+      return lines.join("\n").trim();
+    }
+
+    function setBadges(emotion, intensity){
+      const b = document.getElementById("badges");
+      b.innerHTML = "";
+      const lv = riskLevel(intensity);
+
+      const badge1 = document.createElement("div");
+      badge1.className = "badge";
+      badge1.textContent = "主情緒：" + emotion;
+
+      const badge2 = document.createElement("div");
+      badge2.className = "badge " + lv.cls;
+      badge2.textContent = "強度：" + intensity + "/10（" + lv.label + "）";
+
+      const badge3 = document.createElement("div");
+      badge3.className = "badge";
+      badge3.textContent = "定位：風險走向/區間提示（非診斷）";
+
+      b.appendChild(badge1);
+      b.appendChild(badge2);
+      b.appendChild(badge3);
+    }
+
+    function renderReport(emotion, intensity){
+      const data = MODEL[emotion];
+      setBadges(emotion, intensity);
+
+      document.getElementById("physioOut").textContent =
+        "【狀態本質】" + data.essence + "\n\n" +
+        "【血壓（BP）】" + data.physio[0].replace("血壓：","") + "\n" +
+        "【血糖（BG）】" + data.physio[1].replace("血糖：","");
+
+      document.getElementById("ansOut").textContent =
+        "• " + data.ans[0] + "\n" +
+        "• " + data.ans[1];
+
+      // 強度提示（只做風險管控提示，不做推算）
+      const lv = riskLevel(intensity);
+      const extra =
+        (lv.cls === "good") ? "（目前強度偏低：可用日常調節維持穩定。）" :
+        (lv.cls === "warn") ? "（目前強度中等：建議留意節奏與恢復窗口。）" :
+                              "（目前強度偏高：建議優先做風險管控與減少刺激累積。）";
+
+      document.getElementById("reportOut").textContent =
+        data.report + " " + extra;
+
+      // 建議（依強度排序）
+      document.getElementById("recOut").textContent = buildRecommendations(intensity);
+    }
+
+    // ====== Build Emotion Select ======
+    const emotionSelect = document.getElementById("emotionSelect");
+    EMOTIONS.forEach(e=>{
+      const opt = document.createElement("option");
+      opt.value = e; opt.textContent = e;
+      emotionSelect.appendChild(opt);
+    });
+
+    // Default
+    emotionSelect.value = EMOTIONS[0];
+
+    // ====== Tabs ======
+    const tabEmotion = document.getElementById("tabEmotion");
+    const tabProblem = document.getElementById("tabProblem");
+    const modeEmotion = document.getElementById("modeEmotion");
+    const modeProblem = document.getElementById("modeProblem");
+
+    function setTab(which){
+      const isEmotion = which === "emotion";
+      tabEmotion.classList.toggle("active", isEmotion);
+      tabProblem.classList.toggle("active", !isEmotion);
+      modeEmotion.style.display = isEmotion ? "" : "none";
+      modeProblem.style.display = !isEmotion ? "" : "none";
+    }
+    tabEmotion.addEventListener("click", ()=>setTab("emotion"));
+    tabProblem.addEventListener("click", ()=>setTab("problem"));
+
+    // ====== Intensity ======
+    const intensity = document.getElementById("intensity");
+    const intensityVal = document.getElementById("intensityVal");
+    intensity.addEventListener("input", ()=> intensityVal.textContent = intensity.value);
+
+    const intensity2 = document.getElementById("intensity2");
+    const intensityVal2 = document.getElementById("intensityVal2");
+    intensity2.addEventListener("input", ()=> intensityVal2.textContent = intensity2.value);
+
+    // ====== Problem Mode UI ======
+    const emotionChips = document.getElementById("emotionChips");
+    const questionArea = document.getElementById("questionArea");
+
+    let activeEmotionForQuestions = EMOTIONS[0];
+    let selectedQuestions = new Map(); // key: emotion, value: Set(questionIndex)
+
+    EMOTIONS.forEach(e=>{
+      selectedQuestions.set(e, new Set());
+    });
+
+    function renderChips(){
+      emotionChips.innerHTML = "";
+      EMOTIONS.forEach(e=>{
+        const chip = document.createElement("div");
+        chip.className = "chip" + (e===activeEmotionForQuestions ? " active":"");
+        const count = selectedQuestions.get(e).size;
+        chip.textContent = count>0 ? `${e}（已選 ${count}）` : e;
+        chip.addEventListener("click", ()=>{
+          activeEmotionForQuestions = e;
+          renderChips();
+          renderQuestions();
+        });
+        emotionChips.appendChild(chip);
+      });
+    }
+
+    function renderQuestions(){
+      const data = MODEL[activeEmotionForQuestions];
+      const set = selectedQuestions.get(activeEmotionForQuestions);
+
+      questionArea.innerHTML = "";
+      const box = document.createElement("div");
+      box.className = "qGroup";
+
+      const title = document.createElement("div");
+      title.className = "qTitle";
+      title.innerHTML = `<strong>${activeEmotionForQuestions}</strong><span class="mini">點選符合的問題（可複選）</span>`;
+      box.appendChild(title);
+
+      data.questions.forEach((q, idx)=>{
+        const row = document.createElement("label");
+        row.className = "qItem";
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.checked = set.has(idx);
+        cb.addEventListener("change", ()=>{
+          if(cb.checked) set.add(idx); else set.delete(idx);
+          renderChips();
+        });
+
+        const text = document.createElement("div");
+        text.textContent = q;
+
+        row.appendChild(cb);
+        row.appendChild(text);
+        box.appendChild(row);
+      });
+
+      questionArea.appendChild(box);
+    }
+
+    renderChips();
+    renderQuestions();
+
+    // Determine main emotion by max selected questions; tie -> current active emotion
+    function inferMainEmotion(){
+      let bestEmotion = activeEmotionForQuestions;
+      let bestCount = -1;
+      EMOTIONS.forEach(e=>{
+        const c = selectedQuestions.get(e).size;
+        if(c > bestCount){
+          bestCount = c; bestEmotion = e;
+        }
+      });
+      // If none selected, fall back to active
+      if(bestCount === 0) bestEmotion = activeEmotionForQuestions;
+      return {emotion: bestEmotion, count: bestCount};
+    }
+
+    // ====== Apply Buttons ======
+    document.getElementById("applyEmotion").addEventListener("click", ()=>{
+      renderReport(emotionSelect.value, Number(intensity.value));
+    });
+
+    document.getElementById("applyProblem").addEventListener("click", ()=>{
+      const inferred = inferMainEmotion();
+      renderReport(inferred.emotion, Number(intensity2.value));
+    });
+
+    // ====== Reset ======
+    function resetAll(){
+      emotionSelect.value = EMOTIONS[0];
+      intensity.value = 5; intensityVal.textContent = "5";
+      intensity2.value = 5; intensityVal2.textContent = "5";
+
+      EMOTIONS.forEach(e=> selectedQuestions.get(e).clear());
+      activeEmotionForQuestions = EMOTIONS[0];
+      renderChips();
+      renderQuestions();
+
+      document.getElementById("badges").innerHTML = "";
+      document.getElementById("physioOut").textContent = "請先在左側選擇情緒或問題，並生成報告。";
+      document.getElementById("ansOut").textContent = "—";
+      document.getElementById("reportOut").textContent = "—";
+      document.getElementById("recOut").textContent = "—";
+    }
+    document.getElementById("resetAll1").addEventListener("click", resetAll);
+    document.getElementById("resetAll2").addEventListener("click", resetAll);
+
+    // ====== Copy / Print ======
+    document.getElementById("copyReport").addEventListener("click", async ()=>{
+      const badges = document.getElementById("badges").innerText.trim();
+      const phys = document.getElementById("physioOut").innerText.trim();
+      const ans = document.getElementById("ansOut").innerText.trim();
+      const rep = document.getElementById("reportOut").innerText.trim();
+      const rec = document.getElementById("recOut").innerText.trim();
+
+      const text =
+`【情緒 × 風險監測報告】
+${badges}
+
+[生理波動型態]
+${phys}
+
+[自律神經風險意涵]
+${ans}
+
+[報告用語]
+${rep}
+
+[風險管控建議]
+${rec}
+
+（非醫療診斷，僅作風險走向/區間提示）`;
+
+      try{
+        await navigator.clipboard.writeText(text);
+        alert("已複製到剪貼簿");
+      }catch(e){
+        alert("複製失敗（可能瀏覽器限制）。你可以手動選取文字複製。");
+      }
+    });
+
+    document.getElementById("printPage").addEventListener("click", ()=>{
+      window.print();
+    });
+
+    // Initial
+    resetAll();
+  </script>
+</body>
+</html>
