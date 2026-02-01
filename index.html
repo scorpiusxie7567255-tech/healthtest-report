@@ -1,0 +1,250 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>智衡健康｜情緒 × 生理聯動健康管理評估</title>
+<style>
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif;
+  background:radial-gradient(1200px 600px at 20% 10%, #0f2142 0%, #0b1220 55%, #070b14 100%);
+  color:#e7efff;
+}
+.container{max-width:960px;margin:40px auto;padding:24px}
+.header h1{font-size:26px;margin:0 0 6px}
+.header p{color:#9bb6ff;margin:0 0 20px}
+.card{
+  background:linear-gradient(180deg,#0f1c35,#0b1426);
+  border-radius:16px;
+  padding:24px;
+  margin-bottom:20px;
+  box-shadow:0 10px 30px rgba(0,0,0,.35);
+}
+label{display:block;margin:14px 0 6px;color:#bcd3ff}
+select{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  background:#0a1730;
+  color:#fff;
+  border:1px solid #1e2f55;
+}
+.desc{
+  margin-top:14px;
+  line-height:1.8;
+  background:#0a1630;
+  border-radius:12px;
+  padding:16px;
+}
+.desc ul{margin:8px 0 0 20px}
+.output{white-space:pre-line;line-height:1.8}
+.line-btn{
+  display:inline-block;
+  margin-top:16px;
+  padding:12px 20px;
+  border-radius:999px;
+  background:#06c755;
+  color:#003a12;
+  text-decoration:none;
+  font-weight:600;
+}
+.small{color:#9bb6ff;font-size:14px;margin-top:8px}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>智衡健康｜情緒 × 生理聯動健康管理評估</h1>
+    <p>從情緒出發，理解血壓、自律神經與身體反應之間的連動關係</p>
+  </div>
+
+  <div class="card">
+    <label>八大情緒（選一個即可）</label>
+    <select id="emotionSel">
+      <option value="">請選擇情緒…</option>
+      <option value="sad">悲傷</option>
+      <option value="fear">恐懼</option>
+      <option value="anger">憤怒</option>
+      <option value="anx">焦慮</option>
+      <option value="shame">羞愧</option>
+      <option value="guilt">內疚</option>
+      <option value="joy">興奮</option>
+      <option value="disg">厭惡</option>
+    </select>
+
+    <div class="desc" id="emotionDesc">請先選擇一種最接近你此刻的情緒。</div>
+
+    <label>情緒強度（對身體與注意力的影響程度）</label>
+    <select id="intensitySel">
+      <option value="">請選擇強度…</option>
+      <option value="1">1｜輕微：有感，但不太影響日常</option>
+      <option value="2">2｜偏輕：偶爾影響專注</option>
+      <option value="3">3｜中等：已影響節奏與效率</option>
+      <option value="4">4｜偏重：身體反應明顯</option>
+      <option value="5">5｜重度：幾乎佔滿身體與思緒</option>
+    </select>
+
+    <div class="small">提示：不用選最嚴重，選「最接近你此刻」即可。</div>
+  </div>
+
+  <div class="card">
+    <h2>分析結果（初階）</h2>
+    <div class="output" id="reportOut">請先選擇情緒與強度。</div>
+    <a class="line-btn" href="https://line.me/R/ti/p/@223eypfq" target="_blank">
+      取得完整健康管理建議（加入 LINE）
+    </a>
+  </div>
+</div>
+
+<script>
+const emotionDescMap = {
+  sad:{
+    title:"悲傷是一種向內收的情緒，常見於長期壓抑與無法被理解的狀態。",
+    bullets:[
+      "一：提不起勁，但又說不出口",
+      "二：表面正常，內在卻感到空",
+      "三：對以前喜歡的事物失去感覺",
+      "四：想靜靜待著，不想被打擾",
+      "五：身體變重、動作變慢"
+    ],
+    q:"如果你有這些狀況，是否曾長時間默默承受，卻沒有被好好接住？"
+  },
+  fear:{
+    title:"恐懼多半出現在不確定與失去掌控時，身體會先進入防守狀態。",
+    bullets:[
+      "一：腦中反覆預演最壞結果",
+      "二：對未發生的事先緊張",
+      "三：容易被突發狀況嚇到",
+      "四：身體先僵住再思考",
+      "五：很難真正放鬆"
+    ],
+    q:"你是否常在事情還沒發生前，就已經先消耗了大量能量？"
+  },
+  anger:{
+    title:"憤怒常源自界線被踩或長期壓抑，是一種向外衝的能量。",
+    bullets:[
+      "一：忍很久，最後一次爆開",
+      "二：對不公平特別敏感",
+      "三：身體發熱、心跳加快",
+      "四：小事就被點燃",
+      "五：事後感到疲累或後悔"
+    ],
+    q:"你是否其實早就不舒服，只是一直撐著沒有說？"
+  },
+  anx:{
+    title:"焦慮是一種大腦停不下來、身體持續待命的狀態。",
+    bullets:[
+      "一：腦中一直轉著待辦事項",
+      "二：很難真正休息",
+      "三：明明坐著卻像在趕時間",
+      "四：呼吸變淺",
+      "五：容易忘記喝水或吃飯"
+    ],
+    q:"你是否已經很久沒有真正讓自己慢下來？"
+  },
+  shame:{
+    title:"羞愧來自對自我的高度檢查，擔心被看見不夠好。",
+    bullets:[
+      "一：反覆回想自己哪裡做錯",
+      "二：過度在意他人眼光",
+      "三：一句話就想很久",
+      "四：身體下意識縮起來",
+      "五：不敢完全做自己"
+    ],
+    q:"你是否對自己，比對任何人都嚴格？"
+  },
+  guilt:{
+    title:"內疚是把責任扛在自己身上的情緒，很難真正放下。",
+    bullets:[
+      "一：事情過了仍覺得是自己的錯",
+      "二：很難拒絕別人",
+      "三：身體長期繃著",
+      "四：總覺得『我應該要…』",
+      "五：放鬆時反而不安心"
+    ],
+    q:"你是否一直在替過去付出代價？"
+  },
+  joy:{
+    title:"興奮是能量上升的狀態，節奏容易變快。",
+    bullets:[
+      "一：一忙就停不下來",
+      "二：容易忽略休息與補水",
+      "三：同時做很多事",
+      "四：身體發熱",
+      "五：睡前大腦還在轉"
+    ],
+    q:"你是否在開心時，也常忘記照顧身體的極限？"
+  },
+  disg:{
+    title:"厭惡是身體在提醒你想拉開距離的訊號。",
+    bullets:[
+      "一：進入某些環境就不舒服",
+      "二：很想快點離開",
+      "三：胃口變差",
+      "四：身體下意識後退",
+      "五：對特定人事物反感"
+    ],
+    q:"這是否是身體在幫你守住界線？"
+  }
+};
+
+const emotionSel=document.getElementById("emotionSel");
+const intensitySel=document.getElementById("intensitySel");
+const emotionDesc=document.getElementById("emotionDesc");
+const reportOut=document.getElementById("reportOut");
+
+emotionSel.addEventListener("change",renderAll);
+intensitySel.addEventListener("change",renderAll);
+
+function renderAll(){
+  renderEmotion();
+  renderReport();
+}
+
+function renderEmotion(){
+  const k=emotionSel.value;
+  if(!emotionDescMap[k]){
+    emotionDesc.textContent="請先選擇一種最接近你此刻的情緒。";
+    return;
+  }
+  const d=emotionDescMap[k];
+  emotionDesc.innerHTML=
+    "<strong>"+d.title+"</strong><ul>"+
+    d.bullets.map(b=>"<li>"+b+"</li>").join("")+
+    "</ul><p>"+d.q+"</p>";
+}
+
+function renderReport(){
+  if(!emotionSel.value||!intensitySel.value){
+    reportOut.textContent="請先選擇情緒與強度。";
+    return;
+  }
+  const i=Number(intensitySel.value);
+  let bp,ans;
+  if(i<=2){
+    bp="血壓多為短暫上升，休息後通常可回落。";
+    ans="自律神經仍保有切換與恢復能力。";
+  }else if(i===3){
+    bp="血壓容易停在高標邊緣，回落速度變慢。";
+    ans="自律神經偏向交感神經，恢復節奏被壓縮。";
+  }else if(i===4){
+    bp="血壓波動明顯，身體長時間處於高檔狀態。";
+    ans="自律神經長期偏交感，放鬆訊號不易啟動。";
+  }else{
+    bp="血壓反覆上衝，身體難以自行回穩。";
+    ans="自律神經幾乎持續警戒，需要外力介入協助。";
+  }
+  reportOut.textContent=
+`【血壓的可能變化】
+${bp}
+
+【自律神經的可能狀態】
+${ans}
+
+這不是診斷，而是一個讓你停下來看見自己狀態的入口。`;
+}
+</script>
+</body>
+</html>
