@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>情緒認知與自我覺察測驗</title>
+    <style>
+        @font-face {
+            font-family: 'NotoSansTC';
+            src: local('Noto Sans CJK TC'), local('Noto Sans TC');
+            font-weight: normal;
+        }
+        
+        :root {
+            --soft-blue: #A8D5E2;
+            --soft-teal: #B8E6E6;
+            --soft-mint: #C8F0E8;
+            --soft-peach: #F5D5C8;
+            --soft-pink: #F8E8E8;
+            --soft-lavender: #E8DCF0;
+            --cream: #FFFDF7;
+            --text-soft: #6B7C8E;
+            --text-main: #4A5568;
+            --success: #6BCF9A;
+            --warning: #F5C77E;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'NotoSansTC', 'Noto Sans CJK TC', 'Microsoft JhengHei', sans-serif;
+            color: var(--text-main);
+            line-height: 1.9;
+            background: linear-gradient(135deg, #F0F8FA 0%, #FCF0F5 50%, #F5F8FC 100%);
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* 波浪背景 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            width: 100%;
+            height: 400px;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400"><path d="M0,100 Q200,50 400,100 T800,100 T1200,100 L1200,0 L0,0 Z" fill="%23A8D5E2" opacity="0.15"/><path d="M0,150 Q300,100 600,150 T1200,150 L1200,0 L0,0 Z" fill="%23B8E6E6" opacity="0.12"/></svg>') no-repeat;
+            background-size: cover;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .quiz-card {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 40px;
+            padding: 50px;
+            box-shadow: 0 20px 60px rgba(168, 213, 226, 0.15);
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 標題區塊 */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            position: relative;
+        }
+        
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 4px;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 4"><path d="M0,2 Q37.5,0 75,2 T150,2" stroke="%23A8D5E2" stroke-width="4" fill="none" stroke-linecap="round"/></svg>') no-repeat center;
+        }
+        
+        h1 {
+            font-size: 2.2em;
+            color: var(--soft-blue);
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+        
+        .subtitle {
+            color: var(--text-soft);
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+        
+        /* 進度條 */
+        .progress-container {
+            margin: 30px 0;
+            background: rgba(200, 240, 232, 0.3);
+            border-radius: 25px;
+            height: 12px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--soft-teal), var(--soft-mint));
+            border-radius: 25px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+        
+        .progress-text {
+            text-align: center;
+            margin-top: 10px;
+            color: var(--text-soft);
+            font-size: 0.9em;
+        }
+        
+        /* 問題區塊 */
+        .question-section {
+            display: none;
+            animation: fadeInUp 0.6s ease;
+        }
+        
+        .question-section.active {
+            display: block;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .question-number {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--soft-blue), var(--soft-teal));
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+        
+        .question-title {
+            font-size: 1.4em;
+            color: var(--text-main);
+            margin-bottom: 25px;
+            line-height: 1.7;
+        }
+        
+        .question-desc {
+            background: rgba(245, 213, 200, 0.2);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            color: var(--text-soft);
+            border-left: 4px solid var(--soft-peach);
+        }
+        
+        /* 選項按鈕 */
+        .options {
+            display: grid;
+            gap: 15px;
+            margin: 25px 0;
+        }
+        
+        .option-btn {
+            background: rgba(255, 255, 255, 0.8);
+            border: 2px solid rgba(200, 240, 232, 0.3);
+            border-radius: 20px;
+            padding: 20px 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            font-size: 1em;
+            color: var(--text-main);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .option-btn::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, rgba(200, 240, 232, 0.3), rgba(184, 230, 230, 0.2));
+            transition: width 0.3s ease;
+            z-index: 0;
+        }
+        
+        .option-btn:hover {
+            border-color: var(--soft-teal);
+            transform: translateX(5px);
+            box-shadow: 0 8px 20px rgba(168, 213, 226, 0.15);
+        }
+        
+        .option-btn:hover::before {
+            width: 100%;
+        }
+        
+        .option-btn.selected {
+            background: linear-gradient(135deg, rgba(200, 240, 232, 0.4), rgba(184, 230, 230, 0.3));
+            border-color: var(--soft-teal);
+            font-weight: 500;
+        }
+        
+        .option-label {
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* 按鈕 */
+        .btn-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 35px;
+            justify-content: space-between;
+        }
+        
+        .btn {
+            padding: 15px 35px;
+            border-radius: 25px;
+            border: none;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        
+        .btn-prev {
+            background: rgba(200, 240, 232, 0.3);
+            color: var(--text-main);
+        }
+        
+        .btn-prev:hover {
+            background: rgba(200, 240, 232, 0.5);
+        }
+        
+        .btn-next, .btn-submit {
+            background: linear-gradient(135deg, var(--soft-teal), var(--soft-mint));
+            color: white;
+            font-weight: 500;
+        }
+        
+        .btn-next:hover, .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(184, 230, 230, 0.3);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* 結果頁面 */
+        .result-section {
+            display: none;
+        }
+        
+        .result-section.active {
+            display: block;
+            animation: fadeInUp 0.8s ease;
+        }
+        
+        .result-header {
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(135deg, rgba(200, 240, 232, 0.2), rgba(184, 230, 230, 0.15));
+            border-radius: 30px;
+            margin-bottom: 35px;
+        }
+        
+        .result-score {
+            font-size: 4em;
+            font-weight: bold;
+            color: var(--soft-blue);
+            margin: 20px 0;
+        }
+        
+        .result-level {
+            font-size: 1.5em;
+            color: var(--text-main);
+            margin-bottom: 15px;
+        }
+        
+        .result-desc {
+            color: var(--text-soft);
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+        
+        /* 結果詳情 */
+        .result-detail {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 25px;
+            padding: 30px;
+            margin: 25px 0;
+            border-left: 5px solid var(--soft-mint);
+        }
+        
+        .result-detail h3 {
+            color: var(--soft-blue);
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+        
+        .result-item {
+            background: rgba(245, 213, 200, 0.15);
+            padding: 15px 20px;
+            border-radius: 15px;
+            margin: 12px 0;
+            position: relative;
+            padding-left: 45px;
+        }
+        
+        .result-item::before {
+            content: '✓';
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--success);
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+        
+        .insight-box {
+            background: linear-gradient(135deg, rgba(232, 220, 240, 0.3), rgba(248, 232, 232, 0.2));
+            border-radius: 25px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+        
+        .insight-box h3 {
+            color: var(--soft-lavender);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .insight-box h3::before {
+            content: '💡';
+            font-size: 1.3em;
+        }
+        
+        /* 開始頁面 */
+        .start-section {
+            text-align: center;
+            padding: 40px 0;
+        }
+        
+        .intro-box {
+            background: rgba(245, 213, 200, 0.2);
+            border-radius: 25px;
+            padding: 30px;
+            margin: 30px 0;
+            text-align: left;
+        }
+        
+        .intro-box h3 {
+            color: var(--soft-blue);
+            margin-bottom: 15px;
+        }
+        
+        .intro-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .intro-list li {
+            padding: 12px 0;
+            padding-left: 35px;
+            position: relative;
+        }
+        
+        .intro-list li::before {
+            content: '🌸';
+            position: absolute;
+            left: 0;
+            top: 12px;
+        }
+        
+        .start-btn {
+            background: linear-gradient(135deg, var(--soft-blue), var(--soft-teal));
+            color: white;
+            padding: 20px 50px;
+            border-radius: 30px;
+            border: none;
+            font-size: 1.2em;
+            cursor: pointer;
+            margin-top: 30px;
+            font-weight: 500;
+            box-shadow: 0 10px 30px rgba(168, 213, 226, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .start-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(168, 213, 226, 0.4);
+        }
+        
+        /* 響應式 */
+        @media (max-width: 768px) {
+            .quiz-card {
+                padding: 30px 20px;
+                border-radius: 30px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .result-score {
+                font-size: 3em;
+            }
+            
+            .btn-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="quiz-card">
+            <!-- 開始頁面 -->
+            <div id="startSection" class="start-section active">
+                <div class="header">
+                    <h1>🌸 情緒認知與自我覺察測驗 🌸</h1>
+                    <p class="subtitle">透過這個測驗,深入了解你對情緒的認知程度<br/>以及情緒與身體健康的連結</p>
+                </div>
+                
+                <div class="intro-box">
+                    <h3>📋 測驗內容包括:</h3>
+                    <ul class="intro-list">
+                        <li>情緒識別與理解能力</li>
+                        <li>情緒與生理反應的連結認知</li>
+                        <li>自我覺察與情緒管理意識</li>
+                        <li>壓力與健康的關係理解</li>
+                    </ul>
+                </div>
+                
+                <div class="intro-box">
+                    <h3>⏱️ 測驗說明:</h3>
+                    <ul class="intro-list">
+                        <li>共有15道題目</li>
+                        <li>預計需要8-10分鐘</li>
+                        <li>請憑直覺作答,沒有對錯</li>
+                        <li>完成後會獲得個人化分析報告</li>
+                    </ul>
+                </div>
+                
+                <button class="start-btn" onclick="startQuiz()">開始測驗 →</button>
+            </div>
+            
+            <!-- 問題頁面 -->
+            <div id="quizSection" style="display: none;">
+                <div class="progress-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <div class="progress-text" id="progressText">第 1 / 15 題</div>
+                
+                <div id="questionsContainer"></div>
+                
+                <div class="btn-container">
+                    <button class="btn btn-prev" onclick="prevQuestion()" id="prevBtn" style="display: none;">← 上一題</button>
+                    <button class="btn btn-next" onclick="nextQuestion()" id="nextBtn">下一題 →</button>
+                    <button class="btn btn-submit" onclick="submitQuiz()" id="submitBtn" style="display: none;">完成測驗 ✓</button>
+                </div>
+            </div>
+            
+            <!-- 結果頁面 -->
+            <div id="resultSection" class="result-section">
+                <div class="result-header">
+                    <h2>🎉 測驗完成!</h2>
+                    <div class="result-score" id="resultScore">85</div>
+                    <div class="result-level" id="resultLevel">情緒認知達人</div>
+                    <p class="result-desc" id="resultDesc">你對情緒有很好的理解和覺察能力</p>
+                </div>
+                
+                <div class="result-detail">
+                    <h3>📊 你的表現分析</h3>
+                    <div id="categoryScores"></div>
+                </div>
+                
+                <div class="insight-box">
+                    <h3>💡 個人化建議</h3>
+                    <div id="personalInsights"></div>
+                </div>
+                
+                <div class="result-detail">
+                    <h3>🌱 下一步行動</h3>
+                    <div id="actionItems"></div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 40px;">
+                    <button class="start-btn" onclick="location.reload()">重新測驗</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                category: '情緒識別',
+                question: '當你感到「心裡很悶」但說不出具體是什麼情緒時,你通常會:',
+                description: '情緒識別是了解自己的第一步',
+                options: [
+                    { text: '試著靜下來,仔細感受這個感覺', points: 3 },
+                    { text: '找朋友聊聊,透過對話釐清', points: 2 },
+                    { text: '忽略它,繼續做自己的事', points: 1 },
+                    { text: '不太確定該怎麼處理', points: 0 }
+                ]
+            },
+            {
+                category: '情緒識別',
+                question: '你能區分「焦慮」和「緊張」的差異嗎?',
+                description: '細緻的情緒辨識能力很重要',
+                options: [
+                    { text: '可以,焦慮是持續性的不安,緊張是暫時的', points: 3 },
+                    { text: '大概知道,但不太確定具體差異', points: 2 },
+                    { text: '覺得差不多,都是不舒服的感覺', points: 1 },
+                    { text: '從來沒想過這個問題', points: 0 }
+                ]
+            },
+            {
+                category: '生理連結',
+                question: '你知道長期的情緒壓力會影響血壓嗎?',
+                description: '情緒與生理健康息息相關',
+                options: [
+                    { text: '知道,而且了解背後的機制', points: 3 },
+                    { text: '聽說過,但不太清楚詳細原因', points: 2 },
+                    { text: '不太確定兩者的關係', points: 1 },
+                    { text: '第一次聽到這個概念', points: 0 }
+                ]
+            },
+            {
+                category: '生理連結',
+                question: '當你感到焦慮時,身體通常會有什麼反應?',
+                description: '覺察身心連結很重要',
+                options: [
+                    { text: '會注意到心跳加快、呼吸變淺、肌肉緊繃等', points: 3 },
+                    { text: '偶爾會注意到,但不一定', points: 2 },
+                    { text: '很少注意到身體的變化', points: 1 },
+                    { text: '完全沒有覺察', points: 0 }
+                ]
+            },
+            {
+                category: '生理連結',
+                question: '你知道自律神經系統如何影響情緒嗎?',
+                description: '了解神經系統有助於情緒管理',
+                options: [
+                    { text: '了解交感和副交感神經的作用', points: 3 },
+                    { text: '聽過自律神經,但不太清楚運作方式', points: 2 },
+                    { text: '不太了解這方面的知識', points: 1 },
+                    { text: '第一次接觸這個概念', points: 0 }
+                ]
+            },
+            {
+                category: '自我覺察',
+                question: '你會定期檢視自己的情緒狀態嗎?',
+                description: '自我覺察是情緒健康的基礎',
+                options: [
+                    { text: '每天都會,甚至記錄下來', points: 3 },
+                    { text: '有時候會,但不規律', points: 2 },
+                    { text: '很少主動檢視', points: 1 },
+                    { text: '從來沒有這個習慣', points: 0 }
+                ]
+            },
+            {
+                category: '自我覺察',
+                question: '你能察覺到自己情緒的「早期訊號」嗎?',
+                description: '提早發現情緒變化很重要',
+                options: [
+                    { text: '可以,我知道自己情緒變化的徵兆', points: 3 },
+                    { text: '有時候可以,但不一定', points: 2 },
+                    { text: '通常要等情緒很明顯才發現', points: 1 },
+                    { text: '不太會注意這些', points: 0 }
+                ]
+            },
+            {
+                category: '自我覺察',
+                question: '當情緒來臨時,你的第一反應是:',
+                description: '情緒反應模式反映你的覺察程度',
+                options: [
+                    { text: '先觀察,不急著反應或壓抑', points: 3 },
+                    { text: '試著理解,但有時會被情緒帶走', points: 2 },
+                    { text: '通常直接反應,事後才意識到', points: 1 },
+                    { text: '沒有特別注意自己的反應模式', points: 0 }
+                ]
+            },
+            {
+                category: '情緒理解',
+                question: '你認為「悲傷」是一種:',
+                description: '對情緒的理解影響如何面對它',
+                options: [
+                    { text: '自然的情緒反應,需要被接納和理解', points: 3 },
+                    { text: '不好的感覺,應該盡快擺脫', points: 1 },
+                    { text: '軟弱的表現,不應該有', points: 0 },
+                    { text: '不太確定該如何看待', points: 1 }
+                ]
+            },
+            {
+                category: '情緒理解',
+                question: '你知道情緒有「保護作用」嗎?',
+                description: '情緒是重要的內在訊號',
+                options: [
+                    { text: '知道,情緒在提醒我們重要的事', points: 3 },
+                    { text: '聽說過,但不太理解', points: 2 },
+                    { text: '覺得情緒常常造成困擾', points: 1 },
+                    { text: '不太清楚這個概念', points: 0 }
+                ]
+            },
+            {
+                category: '壓力認知',
+                question: '你認為適度的壓力:',
+                description: '正確的壓力認知很重要',
+                options: [
+                    { text: '可以是動力,關鍵在於如何管理', points: 3 },
+                    { text: '都是不好的,應該避免', points: 1 },
+                    { text: '沒什麼影響,不用在意', points: 0 },
+                    { text: '不太確定', points: 1 }
+                ]
+            },
+            {
+                category: '壓力認知',
+                question: '當壓力持續太久,你知道會對身體造成什麼影響嗎?',
+                description: '了解壓力的長期影響',
+                options: [
+                    { text: '知道會影響免疫系統、心血管等多個系統', points: 3 },
+                    { text: '知道會影響健康,但不清楚具體如何', points: 2 },
+                    { text: '不太清楚壓力的長期影響', points: 1 },
+                    { text: '從未想過這個問題', points: 0 }
+                ]
+            },
+            {
+                category: '情緒調節',
+                question: '當負面情緒來臨時,你會:',
+                description: '情緒調節能力的展現',
+                options: [
+                    { text: '使用多種方法調節,如深呼吸、運動、談話等', points: 3 },
+                    { text: '有一些方法,但不一定有效', points: 2 },
+                    { text: '通常忍耐或等它自己過去', points: 1 },
+                    { text: '不知道該怎麼處理', points: 0 }
+                ]
+            },
+            {
+                category: '情緒調節',
+                question: '你認為「情緒管理」的目標是:',
+                description: '對情緒管理的正確認知',
+                options: [
+                    { text: '學會與情緒共處,而非消除它', points: 3 },
+                    { text: '盡快讓負面情緒消失', points: 1 },
+                    { text: '不要有負面情緒', points: 0 },
+                    { text: '不太確定', points: 1 }
+                ]
+            },
+            {
+                category: '整合應用',
+                question: '如果朋友長期處於壓力和焦慮中,你會建議他:',
+                description: '綜合運用情緒健康知識',
+                options: [
+                    { text: '多方面關注:情緒、生活作息、社交支持、必要時尋求專業協助', points: 3 },
+                    { text: '建議放鬆和休息', points: 2 },
+                    { text: '叫他不要想太多', points: 0 },
+                    { text: '不太知道該怎麼建議', points: 1 }
+                ]
+            }
+        ];
+
+        let currentQuestion = 0;
+        let answers = [];
+        let categoryScores = {
+            '情緒識別': { score: 0, total: 0 },
+            '生理連結': { score: 0, total: 0 },
+            '自我覺察': { score: 0, total: 0 },
+            '情緒理解': { score: 0, total: 0 },
+            '壓力認知': { score: 0, total: 0 },
+            '情緒調節': { score: 0, total: 0 },
+            '整合應用': { score: 0, total: 0 }
+        };
+
+        function startQuiz() {
+            document.getElementById('startSection').style.display = 'none';
+            document.getElementById('quizSection').style.display = 'block';
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+            
+            questions.forEach((q, index) => {
+                const section = document.createElement('div');
+                section.className = 'question-section';
+                if (index === currentQuestion) {
+                    section.classList.add('active');
+                }
+                
+                section.innerHTML = `
+                    <div class="question-number">第 ${index + 1} / ${questions.length} 題 - ${q.category}</div>
+                    <div class="question-title">${q.question}</div>
+                    <div class="question-desc">${q.description}</div>
+                    <div class="options">
+                        ${q.options.map((opt, optIndex) => `
+                            <button class="option-btn ${answers[index] === optIndex ? 'selected' : ''}" 
+                                    onclick="selectOption(${index}, ${optIndex})">
+                                <span class="option-label">${opt.text}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                `;
+                
+                container.appendChild(section);
+            });
+            
+            updateProgress();
+            updateButtons();
+        }
+
+        function selectOption(questionIndex, optionIndex) {
+            answers[questionIndex] = optionIndex;
+            
+            // 更新選中狀態
+            const questionSection = document.querySelectorAll('.question-section')[questionIndex];
+            questionSection.querySelectorAll('.option-btn').forEach((btn, idx) => {
+                if (idx === optionIndex) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
+            });
+            
+            updateButtons();
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('progressText').textContent = `第 ${currentQuestion + 1} / ${questions.length} 題`;
+        }
+
+        function updateButtons() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            prevBtn.style.display = currentQuestion > 0 ? 'block' : 'none';
+            
+            if (currentQuestion === questions.length - 1) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = 'block';
+                submitBtn.disabled = answers[currentQuestion] === undefined;
+            } else {
+                nextBtn.style.display = 'block';
+                submitBtn.style.display = 'none';
+                nextBtn.disabled = answers[currentQuestion] === undefined;
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                renderQuestion();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                renderQuestion();
+            }
+        }
+
+        function submitQuiz() {
+            calculateScores();
+            showResults();
+        }
+
+        function calculateScores() {
+            let totalScore = 0;
+            let maxScore = 0;
+            
+            answers.forEach((answerIndex, questionIndex) => {
+                const question = questions[questionIndex];
+                const points = question.options[answerIndex].points;
+                const category = question.category;
+                
+                categoryScores[category].score += points;
+                categoryScores[category].total += 3; // 最高分是3
+                
+                totalScore += points;
+                maxScore += 3;
+            });
+            
+            const percentage = Math.round((totalScore / maxScore) * 100);
+            return percentage;
+        }
+
+        function showResults() {
+            document.getElementById('quizSection').style.display = 'none';
+            document.getElementById('resultSection').classList.add('active');
+            
+            const percentage = calculateScores();
+            document.getElementById('resultScore').textContent = percentage + '%';
+            
+            let level, desc;
+            if (percentage >= 85) {
+                level = '🌟 情緒認知專家';
+                desc = '你對情緒有深入的理解和優秀的覺察能力!你能清楚辨識不同情緒,了解情緒與身體的連結,並有良好的自我覺察和調節能力。';
+            } else if (percentage >= 70) {
+                level = '🌸 情緒認知達人';
+                desc = '你對情緒有很好的認知和理解!你已經建立了不錯的情緒覺察能力,繼續保持這樣的學習態度,會讓你更了解自己。';
+            } else if (percentage >= 55) {
+                level = '🌱 情緒認知成長中';
+                desc = '你對情緒有基本的認識,正在學習更深入地了解自己。繼續探索和練習,你會發現更多關於情緒和身心健康的奧秘。';
+            } else {
+                level = '🌿 情緒認知啟蒙者';
+                desc = '你正站在探索情緒世界的起點!每個人都是從這裡開始的。透過學習和練習,你會逐漸建立起對情緒的理解和覺察能力。';
+            }
+            
+            document.getElementById('resultLevel').textContent = level;
+            document.getElementById('resultDesc').textContent = desc;
+            
+            renderCategoryScores();
+            renderInsights(percentage);
+            renderActions(percentage);
+        }
+
+        function renderCategoryScores() {
+            const container = document.getElementById('categoryScores');
+            let html = '';
+            
+            for (let category in categoryScores) {
+                const data = categoryScores[category];
+                if (data.total > 0) {
+                    const percentage = Math.round((data.score / data.total) * 100);
+                    html += `
+                        <div class="result-item">
+                            <strong>${category}:</strong> ${percentage}% 
+                            (${data.score}/${data.total} 分)
+                        </div>
+                    `;
+                }
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function renderInsights(percentage) {
+            const container = document.getElementById('personalInsights');
+            let insights = [];
+            
+            if (percentage >= 70) {
+                insights.push('你已經具備良好的情緒認知基礎,可以嘗試更深入的自我探索。');
+                insights.push('建議開始記錄情緒日記,更細緻地觀察情緒模式。');
+                insights.push('可以學習更多進階的情緒調節技巧,如正念冥想、身體掃描等。');
+            } else if (percentage >= 50) {
+                insights.push('建議多閱讀情緒相關的書籍或文章,建立基礎知識。');
+                insights.push('練習每天花5分鐘覺察自己的情緒狀態。');
+                insights.push('學習辨識身體的情緒訊號,如緊繃、心跳等。');
+            } else {
+                insights.push('從簡單的情緒識別開始,認識基本的情緒類型。');
+                insights.push('注意情緒對身體的影響,如壓力時的肩頸緊繃。');
+                insights.push('可以尋求專業協助,建立正確的情緒健康觀念。');
+            }
+            
+            container.innerHTML = insights.map(i => `<p style="margin: 12px 0; line-height: 1.8;">• ${i}</p>`).join('');
+        }
+
+        function renderActions(percentage) {
+            const container = document.getElementById('actionItems');
+            let actions = [
+                '定期進行情緒檢視,了解自己的狀態',
+                '學習深呼吸和放鬆技巧',
+                '建立健康的生活作息',
+                '適時尋求他人支持或專業協助',
+                '持續學習情緒和心理健康知識'
+            ];
+            
+            container.innerHTML = actions.map(a => `<div class="result-item">${a}</div>`).join('');
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 預載問題
+            renderQuestion();
+        });
+    </script>
+</body>
+</html>
